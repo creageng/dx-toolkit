@@ -3783,21 +3783,29 @@ class TestDXClientWorkflow(DXTestCaseBuildWorkflows):
             self.assertIsNone(wf_describe_02["stages"][1]["name"])
             self.assertEqual(wf_describe_02["stages"][1]["executable"], applet_id)
 
+        # 4. Run the workflow
+        analysis_id = run("dx run " + workflow_id + " -i0.number=32 -y --brief").strip()
+        self.assertTrue(analysis_id.startswith('analysis-'))
+        analysis_desc = run("dx describe " + analysis_id)
+        # self.assertIn(stage_id + '.number = 32', analysis_desc)
+        # self.assertIn('foo', analysis_desc)
+        # analysis_desc = json.loads(run("dx describe " + analysis_id + " --json"))
+        # time.sleep(2) # May need to wait for job to be created in the system
+        # job_desc = run("dx describe " + analysis_desc["stages"][0]["execution"]["id"])
+        # self.assertIn(' number = 32', job_desc)
+        #
+        # # initialize a new workflow from an analysis
+        # new_workflow_desc = run("dx new workflow --init " + analysis_id)
+        # self.assertNotIn(workflow_id, new_workflow_desc)
+        # self.assertIn(analysis_id, new_workflow_desc)
+        # self.assertIn(stage_id, new_workflow_desc)
+
+
     def test_build_worklow_malformed_dxworkflow_json(self):
         workflow_dir = self.write_workflow_directory("dxbuilt_workflow", "{")
         with self.assertSubprocessFailure(stderr_regexp='Could not parse dxworkflow\.json file', exit_code=3):
             run("dx build " + workflow_dir)
 
-    # def test_build_worklow_warnings(self):
-    #     applet_id = dxpy.api.applet_new({"name": "my_first_applet",
-    #                                      "project": self.project,
-    #                                      "dxapi": "1.0.0",
-    #                                      "inputSpec": [],
-    #                                      "outputSpec": [],
-    #                                      "runSpec": {"interpreter": "bash",
-    #                                                  "code": "exit 0"}
-    #                                      })['id']
-    #     #TODO: finish this test
 
 class TestDXClientFind(DXTestCase):
 
