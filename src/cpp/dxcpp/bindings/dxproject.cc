@@ -69,9 +69,13 @@ namespace dx {
 
   void DXContainer::removeFolder(const string &folder, const bool recurse) const {
     string input = recurse ?
-      "{\"folder\": \"" + folder + "\", \"recurse\": true}" :
-      "{\"folder\": \"" + folder + "\"}";
-    projectRemoveFolder(getID(), input);
+      "{\"folder\": \"" + folder + "\", \"partial\": true, \"recurse\": true}" :
+      "{\"folder\": \"" + folder + "\", \"partial\": true}";
+    bool completed = false;
+    while(!completed) {
+        JSON response = projectRemoveFolder(getID(), input);
+        completed = !response.has("completed") || response["completed"] == true;
+    }
   }
 
   // Objects-specific
