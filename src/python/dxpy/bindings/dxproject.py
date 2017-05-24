@@ -204,7 +204,7 @@ class DXContainer(DXObject):
         completed = False
         while not completed:
             resp = api_method(self._dxid,
-                              {"folder": folder, "recurse": recurse, "force": force, partial: True},
+                              {"folder": folder, "recurse": recurse, "force": force, "partial": True},
                               always_retry=force,  # api call is idempotent under 'force' semantics
                               **kwargs)
             completed = resp.get('completed', True)
