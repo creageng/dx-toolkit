@@ -36,6 +36,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import dxpy
 from . import DXObject
+from ..exceptions import DXError
 
 ###############
 # DXContainer #
@@ -207,7 +208,9 @@ class DXContainer(DXObject):
                               {"folder": folder, "recurse": recurse, "force": force, "partial": True},
                               always_retry=force,  # api call is idempotent under 'force' semantics
                               **kwargs)
-            completed = resp.get('completed', True)
+            if 'completed' not in resp:
+                raise DXError('Server did not return \'completed\' in the response even though we passed \'partial\' in the request.')
+            completed = resp['completed']
 
     def remove_objects(self, objects, force=False, **kwargs):
         """

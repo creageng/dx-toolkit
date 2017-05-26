@@ -23,7 +23,7 @@ namespace dx {
     if (folders) {
       return projectDescribe(getID(), string("{\"folders\": true}"));
     }
-    //else 
+    //else
     return projectDescribe(getID(), string("{}"));
   }
 
@@ -73,8 +73,11 @@ namespace dx {
       "{\"folder\": \"" + folder + "\", \"partial\": true}";
     bool completed = false;
     while(!completed) {
-        JSON response = projectRemoveFolder(getID(), input);
-        completed = !response.has("completed") || response["completed"] == true;
+      JSON response = projectRemoveFolder(getID(), input);
+      if (!response.has("completed")) {
+        throw DXError("Server did not return \'completed\' in the response even though we passed \'partial\' in the request.");
+      }
+      completed = response["completed"];
     }
   }
 

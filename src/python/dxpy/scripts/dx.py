@@ -831,7 +831,9 @@ def rmdir(args):
             while not completed:
                 resp = dxpy.api.project_remove_folder(project, {"folder": folderpath,
                                                                 "partial": True})
-                completed = resp.get('completed', True)
+                if 'completed' not in resp:
+                    raise DXError('Server did not return \'completed\' in the response even though we passed \'partial\' in the request.')
+                completed = resp['completed']
         except Exception as details:
             print("Error while removing " + folderpath + " in " + project)
             print("  " + str(details))
@@ -881,7 +883,9 @@ def rm(args):
                                                           {"folder": folder, "recurse": True,
                                                            "force": True, "partial": True},
                                                           always_retry=True)
-                    completed = resp.get('completed', True)
+                    if 'completed' not in resp:
+                        raise DXError('Server did not return \'completed\' in the response even though we passed \'partial\' in the request.')
+                    completed = resp['completed']
             except Exception as details:
                 print("Error while removing " + folder + " from " + project)
                 print("  " + str(details))
