@@ -8426,6 +8426,7 @@ class TestDXGetExecutables(DXTestCaseBuildApps):
             output_json = json.loads(applet_metadata)
             self.assertEqual(output_app_spec, output_json)
             self.assertNotIn("bundledDepends", output_json["runSpec"])
+            self.assertNotIn("systemRequirementsByRegion", output_json["runSpec"])
 
             self.assertNotIn("description", output_json)
             self.assertNotIn("developerNotes", output_json)
@@ -8671,6 +8672,9 @@ class TestDXGetExecutables(DXTestCaseBuildApps):
 
         self.assertNotIn("description", output_json)
         self.assertNotIn("developerNotes", output_json)
+
+        self.assertNotIn("systemRequirements", output_json["runSpec"])
+        self.assertNotIn("systemRequirementsByRegion", output_json["runSpec"])
 
         self.assertDictSubsetOf(filtered_app_spec, output_json)
 

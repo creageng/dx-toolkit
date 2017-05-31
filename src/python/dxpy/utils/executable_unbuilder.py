@@ -84,6 +84,17 @@ def _dump_workflow(workflow_obj, describe_output=[]):
         _write_simple_file("Readme.md", readme)
 
 
+def _get_sysrequirements_for_region(region, dxapp_json):
+    if 'systemRequirementsByRegion' in dxapp_json['runSpec']:
+        return dict(systemRequirements=dxapp_json['runSpec']['systemRequirementsByRegion'][region])
+    elif "regionalOptions" in dxapp_json:
+        applet_handler = get_handler(dxapp_json["regionalOptions"][region]["applet"])
+        system_requirements = applet_handler.describe()["runSpec"]["systemRequirements"]
+        return dict(systemRequirements=system_requirements)
+    else:
+        raise DXError("Server did not return sufficient information to build systemRequirements")
+
+
 def _dump_app_or_applet(executable, omit_resources=False, describe_output=[]):
     info = executable.get()
 
@@ -198,6 +209,10 @@ def _dump_app_or_applet(executable, omit_resources=False, describe_output=[]):
     for dep in deps_to_remove:
         dxapp_json["runSpec"]["bundledDepends"].remove(dep)
 
+    # Remove runSpec.systemRequirements if dx getting an app
+    if isinstance(executable, dxpy.DXApp) and 'systemRequirements' in dxapp_json["runSpec"]:
+        dxapp_json["runSpec"].pop("systemRequirements", None)
+
     # Add assetDepends to dxapp.json
     if len(asset_depends) > 0:
         dxapp_json["runSpec"]["assetDepends"] = asset_depends
@@ -238,10 +253,11 @@ def _dump_app_or_applet(executable, omit_resources=False, describe_output=[]):
     # "regionalOptions" key in dxapp.json.
     if "regionalOptions" in dxapp_json:
         for region in dxapp_json["regionalOptions"]:
-            applet_handler = get_handler(dxapp_json["regionalOptions"][region]["applet"])
-            system_requirements = applet_handler.describe()["runSpec"]["systemRequirements"]
+            dxapp_json["regionalOptions"][region] = _get_sysrequirements_for_region(region, dxapp_json)
 
-            dxapp_json["regionalOptions"][region] = dict(systemRequirements=system_requirements)
+    # runSpec.systemRequirementsByRegion is not a part of the dxapp.json spec
+    if 'systemRequirementsByRegion' in dxapp_json["runSpec"]:
+        dxapp_json["runSpec"].pop("systemRequirementsByRegion", None)
 
     # Cleanup of empty elements. Be careful not to let this step
     # introduce any semantic changes to the app specification. For
@@ -264,7 +280,6 @@ def _dump_app_or_applet(executable, omit_resources=False, describe_output=[]):
         _write_simple_file("Readme.md", readme)
     if devnotes:
         _write_simple_file("Readme.developer.md", devnotes)
-
 
 def dump_executable(executable, destination_directory, omit_resources=False, describe_output=[]):
     """
