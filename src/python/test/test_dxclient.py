@@ -2353,6 +2353,46 @@ dx-jobutil-add-output outrecord $record_id
         with self.assertRaisesRegexp(ResolutionError, "The entity record-\d+ could not be found"):
             check_resolution("some_path", self.project, "/", "record-123456789012345678901234")
 
+    @unittest.skipUnless(testutil.TEST_RUN_JOBS,
+                         'skipping tests that would run jobs')
+    def test_dx_run_workflow_with_linked_optional_inputs_outputs(self):
+        # applet with optional input and output
+        applet_id = dxpy.api.applet_new({"project": self.project,
+                                         "dxapi": "1.0.0",
+                                         "name": "applet_with_optionals",
+                                         "inputSpec": [{"name": "number", "class": "int", "optional": True}],
+                                         "outputSpec": [{"name": "number", "class": "int", "optional": True}],
+                                         "runSpec": {"interpreter": "python2.7",
+                                                     "code": '''#!/usr/bin/env python
+
+@dxpy.entry_point('main')
+def main(number):
+    output = {"number": number}
+    return output
+'''}})['id']
+
+        stages_spec = [{"id": "stage_0", "executable": applet_id},
+                       {"id": "stage_1", "executable": applet_id,
+                            "input": {"number": {"$dnanexus_link": {"stage": "stage_0",
+                                                                    "outputField": "number"}}}}]
+
+        workflow_id = dxpy.new_dxworkflow(name='workflow_optionals', stages=stages_spec, output_folder="/foo").get_id()
+        analysis_id = run("dx run " + workflow_id + " -i0.number=32 -y --brief").strip()
+        # analysis_id = run("dx run " + workflow_id + " -y --brief").strip()
+        analysis_handler = dxpy.DXAnalysis(analysis_id)
+        analysis_desc = analysis_handler.describe()
+        self.assertEqual(analysis_desc['originalInput']['stage_0.number'], 32)
+        time.sleep(2) # May need to wait for jobs to be created in the system
+        job_id_1 = analysis_desc["stages"][1]["execution"]["id"]
+        job_1_handler = dxpy.DXJob(job_id_1)
+        t = 0
+        while job_1_handler.describe()['state'] in ['idle', 'waiting_on_input']:
+            time.sleep(1)
+            t += 1
+            if t > 30:
+                raise Exception("Timeout while waiting for job to start running")
+        self.assertEqual("running", job_1_handler.describe()['state'])
+
     def test_dx_run_depends_on_success(self):
         applet_id = dxpy.api.applet_new({"project": self.project,
                                          "dxapi": "1.0.0",
