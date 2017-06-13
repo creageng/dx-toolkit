@@ -252,8 +252,33 @@ def run(args):
     if args.rm and not args.quiet:
         sys.stderr.write(dxpy.utils.printing.YELLOW("--rm: Note that by default the container is not preserved after execution\n"))
 
+    bounded_dirs = [
+            '-b', '/etc/host.conf',
+            '-b', '/etc/hosts',
+            #'-b', '/etc/hosts.equiv',
+            '-b', '/etc/mtab',
+            #'-b', '/etc/netgroup',
+            '-b', '/etc/networks',
+            '-b', '/etc/passwd',
+            '-b', '/etc/group',
+            '-b', '/etc/nsswitch.conf',
+            '-b', '/etc/resolv.conf',
+            '-b', '/etc/localtime',
+            '-b', '/dev/',
+            '-b', '/sys/',
+            '-b', '/proc/',
+            '-b', '/run/',
+            '-b', '/var/run/dbus/system_bus_socket',
+    ]
+
     # TODO: implement some form of nested subprocesses to avoid quoting command array if possible
-    proot_cmd =  ["proot", "-R", "{tmpdir}/rootfs".format(tmpdir=tmpdir)] + volume + ["-w", workdir] + env + ["/bin/sh", "-c"] + [" ".join(("'"+x+"'" for x in container_cmd))]
+    proot_cmd =  ["proot", '-r', '{tmpdir}/rootfs'.format(tmpdir=tmpdir)] + \
+                 bounded_dirs + \
+                 volume + \
+                 ["-w", workdir] + \
+                 env + ["/bin/sh", "-c"] + \
+                 [" ".join(("'"+x+"'" for x in container_cmd))]
+
     shell(proot_cmd)
     if not args.rootfs:
         shutil.rmtree(tmpdir)
