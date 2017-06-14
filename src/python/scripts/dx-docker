@@ -252,24 +252,16 @@ def run(args):
     if args.rm and not args.quiet:
         sys.stderr.write(dxpy.utils.printing.YELLOW("--rm: Note that by default the container is not preserved after execution\n"))
 
-    bounded_dirs = [
-            '-b', '/etc/host.conf',
-            '-b', '/etc/hosts',
-            #'-b', '/etc/hosts.equiv',
-            '-b', '/etc/mtab',
-            #'-b', '/etc/netgroup',
-            '-b', '/etc/networks',
-            '-b', '/etc/passwd',
-            '-b', '/etc/group',
-            '-b', '/etc/nsswitch.conf',
-            '-b', '/etc/resolv.conf',
-            '-b', '/etc/localtime',
-            '-b', '/dev/',
-            '-b', '/sys/',
-            '-b', '/proc/',
-            '-b', '/run/',
-            '-b', '/var/run/dbus/system_bus_socket',
-    ]
+    # A list of dirs and files of the host rootfs that will be accessible in the confined
+    # environment just as if they were part of the guest rootfs. This list is based on the
+    # proot -R option: https://github.com/proot-me/PRoot/blob/master/doc/proot/manual.txt
+    to_mount = [ '/etc/host.conf', '/etc/hosts', '/etc/mtab', '/etc/networks', '/etc/passwd',
+                 '/etc/group', '/etc/nsswitch.conf', '/etc/resolv.conf', '/etc/localtime',
+                 '/dev/', '/sys/', '/proc/', '/run/', '/var/run/dbus/system_bus_socket']
+    bounded_dirs = []
+    for b in to_mount:
+        bounded_dirs.append('-b')
+        bounded_dirs.append(b)
 
     # TODO: implement some form of nested subprocesses to avoid quoting command array if possible
     proot_cmd =  ["proot", '-r', '{tmpdir}/rootfs'.format(tmpdir=tmpdir)] + \
