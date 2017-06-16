@@ -4059,11 +4059,8 @@ class TestDXClientFind(DXTestCase):
                     test_projectid + ':' + test_dirname)
 
     def test_dx_find_data_by_region(self):
-        westus = "azure:westus"
-        eastus = "aws:us-east-1"
         with temporary_project("p_azure", region="azure:westus") as p_azure:
             record_id = dxpy.new_dxrecord(project=p_azure.get_id(), close=True).get_id()
-            workflow_id = dxpy.new_dxworkflow(project=p_azure.get_id()).get_id()
             self.assertIn(record_id,
                           run("dx find data --all-projects --brief --region azure:westus"))
             self.assertNotIn(record_id,
@@ -4095,18 +4092,21 @@ class TestDXClientFind(DXTestCase):
                              + pipes.quote(created_project_name)), "")
 
     def test_dx_find_projects_by_region(self):
+        awseast = "aws:us-east-1"
+        azurewest = "azure:westus"
         created_project_name = 'dx find projects test ' + str(time.time())
-        with temporary_project(created_project_name, region="aws:us-east-1") as unique_project:
-            self.assertEqual(run("dx find projects --region aws:us-east-1 --brief --name " +
-                             pipes.quote(created_project_name)), unique_project.get_id() + '\n')
+        with temporary_project(created_project_name, region=awseast) as unique_project:
+            self.assertEqual(run("dx find projects --region {} --brief --name {}".format(
+                                 awseast, pipes.quote(created_project_name))),
+                             unique_project.get_id() + '\n')
             self.assertIn(unique_project.get_id(),
-                          run("dx find projects --region aws:us-east-1 --brief"))
+                          run("dx find projects --region {} --brief".format(awseast)))
             self.assertNotIn(unique_project.get_id(),
-                          run("dx find projects --region azure:westus --brief"))
+                             run("dx find projects --region {} --brief".format(azurewest)))
 
-        with temporary_project(created_project_name, region="azure:westus") as unique_project:
+        with temporary_project(created_project_name, region=azurewest) as unique_project:
             self.assertIn(unique_project.get_id(),
-                          run("dx find projects --region azure:westus --brief"))
+                          run("dx find projects --region {} --brief".format(azurewest)))
 
     def test_dx_find_projects_by_tag(self):
         other_project_id = run("dx new project other --brief").strip()
