@@ -659,6 +659,11 @@ def build_and_upload_locally(src_dir, mode, overwrite=False, archive=False, publ
     if enabled_regions is not None and len(enabled_regions) > 1 and not use_temp_build_project:
         raise dxpy.app_builder.AppBuilderException("Cannot specify --no-temp-build-project when building multi-region apps")
 
+    if mode == "app" and "pricingPolicy" in app_json:
+        error_message = "\"pricingPolicy\" at the top level is not accepted. It must be specified "
+        error_message += "under the \"regionalOptions\" field in all enabled regions of the app"
+        raise dxpy.app_builder.AppBuilderException(error_message)
+
     projects_by_region = None
 
     if mode == "applet" and destination_override:
