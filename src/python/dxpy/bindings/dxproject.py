@@ -246,8 +246,6 @@ class DXContainer(DXObject):
         :type objects: list of strings
         :param folders: List of full paths to folders to move
         :type folders: list of strings
-        :param include_hidden_links: If True, also clone objects that are hidden and linked to from any of the objects that would be cloned
-        :type include_hidden_links: boolean
 
         Clones (copies) the specified objects and folders in the
         container into the folder *destination* in the container
@@ -269,8 +267,7 @@ class DXContainer(DXObject):
                           {"objects": objects,
                            "folders": folders,
                            "project": container,
-                           "destination": destination,
-                           "includeHiddenLinks": include_hidden_links},
+                           "destination": destination},
                           **kwargs)
 
 #############
