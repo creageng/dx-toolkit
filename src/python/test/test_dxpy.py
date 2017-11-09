@@ -2031,6 +2031,7 @@ class TestDXSearch(unittest.TestCase):
         # to verify that negative offsets are being interpreted as ms,
         # not as seconds.
         time.sleep(2.0)
+        run("dx ls -l " + self.proj_id + ":/")
         self.assertEqual(len(list(query(modified_after=-100))), 0)
         self.assertEqual(len(list(query(modified_after=-60 * 1000))), 1)
         self.assertEqual(len(list(query(modified_before=-60 * 1000))), 0)
