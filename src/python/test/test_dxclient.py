@@ -2551,6 +2551,7 @@ dx-jobutil-add-output record_array $second_record --array
         # don't actually need these to run
         run("dx terminate " + normal_job_id)
         run("dx terminate " + high_priority_job_id)
+        time.sleep(2)
 
         # --watch implies --priority high
 
