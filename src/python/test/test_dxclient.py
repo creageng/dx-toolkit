@@ -2553,10 +2553,9 @@ dx-jobutil-add-output record_array $second_record --array
         run("dx terminate " + high_priority_job_id)
 
         # --watch implies --priority high
-        try:
-            run("dx run myapplet -y --watch")
-        except subprocess.CalledProcessError as e:
-            print(e)
+
+        run("dx run myapplet -y --watch")
+        run("dx find jobs")
         watched_job_id = run("dx find jobs -n 1 --brief").strip()
         self.assertNotIn(watched_job_id, [normal_job_id, high_priority_job_id])
         watched_job_desc = dxpy.describe(watched_job_id)
